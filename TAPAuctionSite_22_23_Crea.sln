@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32929.385
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI", "UI\UI.csproj", "{812961BD-64EC-4F39-8A58-D77354FAFEED}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BD2D3CC7-099F-4F19-8A8F-3A49930A21C2} = {BD2D3CC7-099F-4F19-8A8F-3A49930A21C2}
+		{E321E7B6-7388-435D-9174-A9C2377D21AA} = {E321E7B6-7388-435D-9174-A9C2377D21AA}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TAPAuctionSiteData", "TAPAuctionSiteData\TAPAuctionSiteData.csproj", "{E321E7B6-7388-435D-9174-A9C2377D21AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TAPAuctionSiteLogic", "TAPAuctionSiteLogic\TAPAuctionSiteLogic.csproj", "{BD2D3CC7-099F-4F19-8A8F-3A49930A21C2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E321E7B6-7388-435D-9174-A9C2377D21AA} = {E321E7B6-7388-435D-9174-A9C2377D21AA}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TAPAuctionSiteTest", "TAPAuctionSiteTest\TAPAuctionSiteTest.csproj", "{3BB886B6-6546-4A26-8A47-7B95223AB809}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BD2D3CC7-099F-4F19-8A8F-3A49930A21C2} = {BD2D3CC7-099F-4F19-8A8F-3A49930A21C2}
+		{E321E7B6-7388-435D-9174-A9C2377D21AA} = {E321E7B6-7388-435D-9174-A9C2377D21AA}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{812961BD-64EC-4F39-8A58-D77354FAFEED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{812961BD-64EC-4F39-8A58-D77354FAFEED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{812961BD-64EC-4F39-8A58-D77354FAFEED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{812961BD-64EC-4F39-8A58-D77354FAFEED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E321E7B6-7388-435D-9174-A9C2377D21AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E321E7B6-7388-435D-9174-A9C2377D21AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E321E7B6-7388-435D-9174-A9C2377D21AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E321E7B6-7388-435D-9174-A9C2377D21AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD2D3CC7-099F-4F19-8A8F-3A49930A21C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD2D3CC7-099F-4F19-8A8F-3A49930A21C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD2D3CC7-099F-4F19-8A8F-3A49930A21C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD2D3CC7-099F-4F19-8A8F-3A49930A21C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BB886B6-6546-4A26-8A47-7B95223AB809}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BB886B6-6546-4A26-8A47-7B95223AB809}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BB886B6-6546-4A26-8A47-7B95223AB809}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BB886B6-6546-4A26-8A47-7B95223AB809}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D6B37793-6C25-441C-AC11-B3FFA90E4980}
+	EndGlobalSection
+EndGlobal
