@@ -24,6 +24,7 @@ namespace Crea
         [MaxLength(DomainConstraints.MaxUserName)]
         public string Username { get; set; }
         [Required]
+        [MinLength(DomainConstraints.MinUserPassword)]
         public string Password { get; set; }
         //--------------------------------------------------------//
         public SiteTable? SiteEntity { get; set; }
@@ -34,12 +35,12 @@ namespace Crea
         public List<AuctionTable> AuctionBidder { get; set; }
         //--------------------------------------------------------//
         //modified
-        public UserTable(string username, string password, int siteId, string sessionId)
+        public UserTable(string username, string password, int siteId/*, string sessionId*/)
         {
             Username = username;
             Password = password;
             SiteId = siteId;
-            SessionId = sessionId;
+            //SessionId = sessionId;
             AuctionBidder = new List<AuctionTable>();
             AuctionSeller = new List<AuctionTable>();
         }

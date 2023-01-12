@@ -3,19 +3,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TAP22_23.AlarmClock.Interface;
 using TAP22_23.AuctionSite.Interface;
 
 namespace Crea
 {
     public class Auction : IAuction
     {
-        public int Id => throw new NotImplementedException();
+        public int Id { get; set; }
 
-        public IUser Seller => throw new NotImplementedException();
+        public IUser Seller { get; set; }
 
-        public string Description => throw new NotImplementedException();
+        public string Description { get; set; }
 
-        public DateTime EndsOn => throw new NotImplementedException();
+        public DateTime EndsOn { get; set; }
+
+        private readonly string _connectionString;
+        private readonly Site _site;
+
+        public Auction(int id, IUser seller,Site site, string description, DateTime endsOn, string connectionString)
+        {
+            Id = id;
+            Seller = seller;
+            Description = description;
+            EndsOn = endsOn;
+            _connectionString = connectionString;
+            _site = site;
+        }
 
         public bool Bid(ISession session, double offer)
         {

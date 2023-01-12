@@ -9,11 +9,34 @@ namespace Crea
 {
     public class Session : ISession
     {
-        public string Id => throw new NotImplementedException();
+        public string Id { get; set; }
 
-        public DateTime ValidUntil => throw new NotImplementedException();
+        public DateTime ValidUntil
+        {
+            get
+            {
+                using (var c = new DbContext(_connectionString))
+                {
+                    var thisSession = c.Sessions!.SingleOrDefault(s => s.SessionId == Id);
+                    if (thisSession == null) throw new AuctionSiteInvalidOperationException("Session Error: Session Deleted");
+                    return thisSession.ValidUntil;
+                }
+            }
+        }
 
-        public IUser User => throw new NotImplementedException();
+
+        public IUser User { get; set; }
+
+        private readonly string _connectionString;
+        private readonly Site _site;
+
+        public Session(string id, DateTime validUntil, IUser user, string connectionString, Site site)
+        {
+            Id = id;
+            User = user;
+            _connectionString = connectionString;
+            _site = site;
+        }
 
         public IAuction CreateAuction(string description, DateTime endsOn, double startingPrice)
         {
