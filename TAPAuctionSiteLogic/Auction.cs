@@ -1,10 +1,13 @@
-﻿using System;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TAP22_23.AlarmClock.Interface;
 using TAP22_23.AuctionSite.Interface;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Crea
 {
@@ -31,24 +34,147 @@ namespace Crea
             _site = site;
         }
 
+        private void Exists()
+        {
+            using (var c = new DbContext(_connectionString))
+            {
+                var thisAuction = c.Auctions!.SingleOrDefault(a => a.AuctionId == Id && a.SiteId == _site.SiteId);
+                if (thisAuction == null) throw new AuctionSiteInvalidOperationException("Auction Error: This auction doesn't exists");
+            }
+        }
+
+        private void IncreaseTime(ISession session)
+        {
+            using (var c = new DbContext(_connectionString))
+            {
+                var s = c.Sessions.FirstOrDefault(s => s.SessionId == ((Session)session).Id);
+                if (s == null) throw new AuctionSiteInvalidOperationException("Session not exist");
+                s.ValidUntil = _site.Now().AddSeconds(_site.SessionExpirationInSeconds);
+                c.SaveChanges();
+            }
+        }
+        /*
+        public bool ValidateSession(Session session)
+        {
+            var sessions = _site.ToyGetSessions();
+            if (sessions.FirstOrDefault(s => s.Id == session.Id) == null) return false;
+            if()
+        
+        }*/
         public bool Bid(ISession session, double offer)
         {
-            throw new NotImplementedException();
+            Exists();
+
+            if (session == null)
+                throw new AuctionSiteArgumentNullException("Auction.bid Error: session cannot be null");
+            if (EndsOn < _site.Now())
+                throw new AuctionSiteInvalidOperationException("Auction.bid Error: auction closed");
+            if (session.User.Username == Seller.Username)
+                throw new AuctionSiteArgumentException("seller cannot make bids");
+            if (offer < 0)
+                throw new AuctionSiteArgumentOutOfRangeException("Auction.bid Error: Offer cannot be negative");
+            if (session.ValidUntil < _site.Now()) throw new AuctionSiteArgumentException("a");
+
+            using (var c = new DbContext(_connectionString))
+            {
+
+                var myUser = c.Users.FirstOrDefault(u => u.UserId == ((User)session.User).Id);
+
+                if (myUser == null)
+                    throw new AuctionSiteInvalidOperationException("Auction.bid Error: user deleted");
+
+                var myAuction = c.Auctions.FirstOrDefault(a => a.AuctionId == Id);
+
+                if (myAuction == null)
+                    throw new AuctionSiteInvalidOperationException("Auction deleted");
+
+                IncreaseTime(session);
+
+                if (offer < CurrentPrice())
+                    return false;
+
+                if (myAuction.CurrentWinnerId == myUser.UserId)
+                {
+                    if (offer < myAuction.MaximumBidValue + _site.MinimumBidIncrement)
+                        return false;
+                    myAuction.MaximumBidValue = offer;
+                }
+                else if (myAuction.CurrentWinnerId == null)
+                {
+                    myAuction.MaximumBidValue = offer;
+                    myAuction.CurrentWinnerId = myUser.UserId;
+                    myAuction.CurrentWinner = new UserTable(myUser.Username,myUser.Password,myUser.UserId );
+
+                }
+                else
+                {
+                    if (offer < CurrentPrice() + _site.MinimumBidIncrement)
+                        return false;
+                    if (myAuction.MaximumBidValue < offer)
+                    {
+                        if (offer < (myAuction.MaximumBidValue + _site.MinimumBidIncrement))
+                            myAuction.CurrentPrice = offer;
+                        else
+                            myAuction.CurrentPrice = myAuction.MaximumBidValue + _site.MinimumBidIncrement;
+                        myAuction.MaximumBidValue = offer;
+                        myAuction.CurrentWinnerId = myUser.UserId;
+                        myAuction.CurrentWinner = new UserTable(myUser.Username,myUser.Password,myUser.UserId );
+                    }
+                    else
+                    {
+                        if (myAuction.MaximumBidValue < (offer + _site.MinimumBidIncrement))
+                            myAuction.CurrentPrice = myAuction.MaximumBidValue;
+                        else
+                            myAuction.CurrentPrice = offer + _site.MinimumBidIncrement;
+                    }
+                }
+
+
+
+                c.SaveChanges();
+
+            }
+
+            return true;
         }
 
         public double CurrentPrice()
         {
-            throw new NotImplementedException();
+            Exists();
+            using (var c = new DbContext(_connectionString))
+            {
+                var price = c.Auctions.SingleOrDefault(a => a.AuctionId == Id && a.SiteId == _site.SiteId)?.CurrentPrice;
+                if (price == null) return 0;
+                return (double)price;
+            }
         }
 
         public IUser? CurrentWinner()
         {
-            throw new NotImplementedException();
+            using (var c = new DbContext(_connectionString))
+            {
+                var thisAuction = c.Auctions.Include(a => a.CurrentWinner).SingleOrDefault(a => a.SiteId == _site.SiteId && a.AuctionId == Id);
+                if (thisAuction == null) throw new AuctionSiteInvalidOperationException("Auction Error: This auction doesn't exists");
+                if (thisAuction.CurrentWinner == null)
+                    return null;
+                return new User(thisAuction.CurrentWinner.UserId,thisAuction.CurrentWinner.Username,thisAuction.CurrentWinner.Password,_connectionString,_site);
+            }
         }
 
         public void Delete()
         {
-            throw new NotImplementedException();
+            Exists();
+
+            using (var c = new DbContext(_connectionString!))
+            {
+                var thisAuction = c.Auctions!.SingleOrDefault(a => a.AuctionId == Id && a.SiteId == _site.SiteId);
+
+                if (thisAuction != null)
+                {
+                    c.Remove(thisAuction);
+                    c.SaveChanges();
+                }
+            }
         }
     }
 }

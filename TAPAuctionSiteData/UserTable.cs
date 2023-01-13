@@ -29,97 +29,19 @@ namespace Crea
         //--------------------------------------------------------//
         public SiteTable? SiteEntity { get; set; }
         public int SiteId { get; set; }
-        public SessionTable? Session { get; set; }
-        public string? SessionId { get; set; } = null;
         public List<AuctionTable> AuctionSeller { get; set; }
         public List<AuctionTable> AuctionBidder { get; set; }
+        public List<SessionTable> Sessions { get; set; }
         //--------------------------------------------------------//
         //modified
-        public UserTable(string username, string password, int siteId/*, string sessionId*/)
+        public UserTable(string username, string password, int siteId)
         {
             Username = username;
             Password = password;
             SiteId = siteId;
-            //SessionId = sessionId;
             AuctionBidder = new List<AuctionTable>();
             AuctionSeller = new List<AuctionTable>();
+            Sessions = new List<SessionTable>();
         }
     }
-
-    /*
-    [Index(nameof(SiteId), nameof(Username), IsUnique = true, Name = "UsernameUnique")]
-    public class User : IUser
-    {
-        [Key]
-        public int UserId { get; set; }
-
-        public Site? Site { get; set; }
-        public int SiteId { get; }
-
-        public Session? Session { get; set; }
-        public string? SessionId { get; set; } = null;
-
-        [Required]
-        [MinLength(DomainConstraints.MinUserName)]
-        [MaxLength(DomainConstraints.MaxUserName)]
-        public string Username { get; set; }
-
-        [Required]
-        public string Password { get; set; }
-
-        public List<Auction> CurrentlyWinning { get; set; } = new();
-        public List<Auction> Selling { get; set; } = new();
-
-        [NotMapped]
-        private readonly string _connectionString;
-
-        [NotMapped]
-        private readonly IAlarmClock _alarmClock;
-
-        private User() { }
-
-        public User(int siteId, string username, string password, string connectionString, IAlarmClock alarmClock)
-        {
-            Username = username;
-            Password = password;
-            SiteId = siteId;
-            _connectionString = connectionString;
-            _alarmClock = alarmClock;
-        }
-
-
-
-
-
-        [Index(nameof(Username), nameof(SiteId), IsUnique = true, Name = "UsernameUnique")]
-        public class UserEntity
-        {
-            [Key]
-            public int UserId { get; set; }
-            [MinLength(DomainConstraints.MinUserName)]
-            [MaxLength(DomainConstraints.MaxUserName)]
-            [Required]
-            public string Username { get; set; }
-            public string Password { get; set; } //HASH DELLA PASSWORD
-
-            //NAVIGATION
-
-            public SiteEntity? SiteEntity { get; set; }
-            public int SiteId { get; set; }
-            public List<AuctionEntity> AuctionSeller { get; set; }
-            public List<AuctionEntity> AuctionBidder { get; set; }
-
-            public List<SessionEntity> Sessions { get; set; }
-
-            public UserEntity(string username, string password, int siteId)
-            {
-                Username = username;
-                Password = password;
-                SiteId = siteId;
-                AuctionBidder = new List<AuctionEntity>();
-                AuctionSeller = new List<AuctionEntity>();
-                Sessions = new List<SessionEntity>();
-            }
-        }
-    */
-    }
+}

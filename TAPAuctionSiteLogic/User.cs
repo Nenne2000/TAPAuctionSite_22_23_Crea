@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TAP22_23.AlarmClock.Interface;
 using TAP22_23.AuctionSite.Interface;
 
 namespace Crea
@@ -35,16 +36,46 @@ namespace Crea
                 if (thisUser == null) throw new AuctionSiteInvalidOperationException("User Error: This user doesn't exists");
             }
         }
+
         public void Delete()
         {
             Exists();
+            var OpenAuction = _site.ToyGetAuctions(true).FirstOrDefault(a => a.Seller.Username == Username || a.CurrentWinner().Username == Username);
+            if (OpenAuction != null) throw new AuctionSiteInvalidOperationException("User.Delete Error: you cannot delete user with open auction");
+            using (var c = new DbContext(_connectionString))
+            {
+                var user = c.Users.FirstOrDefault(u => u.UserId == Id);
+                if (user == null) throw new AuctionSiteInvalidOperationException("User.Delete Error: no user");
+                var auctions = _site.ToyGetAuctions(false).Where(s => s.Seller.Equals(this));
+                var sessions = _site.ToyGetSessions().Where(s => s.User.Username == Username).ToList();
 
-            throw new NotImplementedException();
+                foreach (var auc in auctions)
+                    auc.Delete();
+
+                foreach (var ses in sessions)
+                    ses.Logout();
+
+                c.Users.Remove(user);
+
+                c.SaveChanges();
+            }
         }
 
         public IEnumerable<IAuction> WonAuctions()
         {
-            throw new NotImplementedException();
+            Exists();
+
+            var wonAuctionsList = new List<AuctionTable>();
+            using (var c = new DbContext(_connectionString))
+            {
+                wonAuctionsList = c.Auctions.Where(a => a.EndsOn < _site.Now() && a.CurrentWinnerId == Id).ToList();
+                foreach (var a in wonAuctionsList)
+                {
+                    var user = c.Users.FirstOrDefault(u => u.UserId == a.CurrentWinnerId);
+                    if (user == null) throw new AuctionSiteInvalidOperationException("User.WonAuction Error: no user");
+                    yield return new Auction(a.AuctionId, new User(user.UserId,user.Username, user.Password,_connectionString,_site),_site, a.Description, a.EndsOn, _connectionString);
+                }
+            }
         }
     }
 }

@@ -10,8 +10,8 @@ namespace Crea
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
-            options.LogTo(Console.WriteLine).EnableSensitiveDataLogging(); 
-            //base.OnConfiguring(options);
+            //options.LogTo(Console.WriteLine).EnableSensitiveDataLogging(); 
+            base.OnConfiguring(options);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -25,16 +25,17 @@ namespace Crea
                 .WithOne(a => a.CurrentWinner!)
                 .HasForeignKey(a => a.CurrentWinnerId)
                 .OnDelete(DeleteBehavior.SetNull);
+            /*
             user.HasOne(user => user.Session)
                 .WithOne(session => session.Owner)
                 .HasForeignKey<SessionTable>(session => session.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-            /*
+            */
             user.HasMany(u => u.Sessions)
                 .WithOne(s => s.Owner!)
                 .HasForeignKey(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-            */
+            
             var session = modelBuilder.Entity<SessionTable>();
             session.HasOne(s => s.Site).WithMany(u => u!.Sessions).HasForeignKey(s => s.SiteId)
                 .OnDelete(DeleteBehavior.NoAction);

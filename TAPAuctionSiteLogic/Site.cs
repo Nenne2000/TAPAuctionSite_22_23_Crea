@@ -123,8 +123,7 @@ namespace Crea
 
         public ISession? Login(string username, string password)
         {
-            throw new NotImplementedException();
-            /*
+            
             Exists();
             if (username == null || password == null)
                 throw new AuctionSiteArgumentNullException("user Error: Username or password cannot be null");
@@ -134,34 +133,25 @@ namespace Crea
                 throw new AuctionSiteArgumentException("Login.CreateUser Error: username too long", nameof(username));
             if (password.Length < DomainConstraints.MinUserPassword)
                 throw new AuctionSiteArgumentException("Login.CreateUser Error: password too short ", nameof(password));
-
             using (var c = new DbContext(_connectionString))
             {
-                var myUser = c.Users!.Include(u => u.Session).SingleOrDefault(u => u.Username == username && u.SiteId == SiteId && u.Password == Hash.GenerateHash(password));
+                var myUser = c.Users.FirstOrDefault(u => u.Username == username && u.SiteId == SiteId && u.Password == password);
                 if (myUser == null) return null;
-                if (myUser.SessionId == null)
-                {
-                    var newSession = new Session(SiteId, myUser.UserId,
-                        new User(SiteId, username, Hash.GenerateHash(password), _connectionString, _alarmClock), _alarmClock.Now.AddSeconds(SessionExpirationInSeconds), _connectionString, _alarmClock)
-                    { Id = myUser.UserId.ToString() };
-                    myUser.SessionId = newSession.Id;
-                    c.Sessions!.Add(newSession);
+                var mySession = c.Sessions.FirstOrDefault(s => s.UserId == myUser.UserId && s.ValidUntil > Now());
+                if (mySession != null) {
+                    mySession.ValidUntil = _alarmClock.Now.AddSeconds(SessionExpirationInSeconds);
+                    c.Update(mySession);
                     c.SaveChanges();
-                    return newSession;
-                }
+                    return new Session(mySession.SessionId, mySession.ValidUntil, new User(myUser.UserId, myUser.Username, myUser.Password, _connectionString, this), _connectionString, this);
+                } 
                 else
                 {
-                    var session = myUser.Session;
-                    session!.ValidUntil = _alarmClock.Now.AddSeconds(SessionExpirationInSeconds);
-                    c.Update(session);
+                    var newSessionEntity = new SessionTable($"session{Name}{username}{Now()}", Now().AddSeconds(SessionExpirationInSeconds), myUser.UserId, SiteId);
+                    c.Sessions.Add(newSessionEntity);
                     c.SaveChanges();
-                    var newSession = new Session(SiteId, myUser.UserId,
-                        new User(SiteId, username, Hash.GenerateHash(password), _connectionString, _alarmClock),
-                        session.DbValidUntil, _connectionString, _alarmClock)
-                    { Id = session.Id };
-                    return newSession;
+                    return new Session(newSessionEntity.SessionId, newSessionEntity.ValidUntil, new User(myUser.UserId, myUser.Username, myUser.Password, _connectionString, this), _connectionString, this);
                 }
-            }*/
+            }
         }
 
         public void CreateUser(string username, string password)
@@ -210,194 +200,5 @@ namespace Crea
             Exists();
             return _alarmClock.Now;
         }
-
-
-        /*
-        public Site(int id, string name, int timezone, int sessionExpirationInSeconds, double minimumBidIncrement, string connectionString, IAlarmClock alarmClock)
-        {
-            this.Id = id;
-            Name = name;
-            Timezone = timezone;
-            SessionExpirationInSeconds = sessionExpirationInSeconds;
-            MinimumBidIncrement = minimumBidIncrement;
-            _connectionString = connectionString;
-            _alarmClock = alarmClock;
-            alarm = _alarmClock.InstantiateAlarm(300000);
-            alarm.RingingEvent += CleanSession;
-        }
-
-        private void Exists()
-        {
-            using (var c = new DbContext(_connectionString))
-            {
-                var thisSite = c.Sites.SingleOrDefault(s => s.Name == Name);
-                if (thisSite == null) throw new AuctionSiteInvalidOperationException("Site Error: This site doesn't exists");
-            }
-        }
-        private UserTable UserValidator(string username, string password)
-        {
-            if (string.IsNullOrEmpty(password)) throw new AuctionSiteArgumentNullException("password cannot be null");
-            
-
-            var newUser = new UserTable(username, password, Id);
-            var vc = new ValidationContext(newUser);
-            try
-            {
-                Validator.ValidateObject(newUser, vc, true);
-            }
-            catch (ValidationException e)
-            {
-                if (e.ValidationAttribute!.GetType() == typeof(MinLengthAttribute))
-                    throw new AuctionSiteArgumentException("Site.UserValidation Error: value too short", $"{e.ValidationResult.MemberNames.First()}", e);
-                if (e.ValidationAttribute.GetType() == typeof(MaxLengthAttribute))
-                    throw new AuctionSiteArgumentException("Site.UserValidation Error: value too long", $"{e.ValidationResult.MemberNames.First()}", e);
-                if (e.ValidationAttribute.GetType() == typeof(RequiredAttribute))
-                    throw new AuctionSiteArgumentNullException($" Site.UserValidation Error: {e.ValidationResult.MemberNames.First()} cannot be null", e);
-            }
-
-            return newUser;
-        }
-
-        public void CreateUser(string username, string password)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Delete()
-        {
-            using (var c = new DbContext(_connectionString))
-            {
-                var thisSite = c.Sites.SingleOrDefault(s => s.Name == Name);
-                if (thisSite == null) throw new AuctionSiteInvalidOperationException("Site Error: This site doesn't exists");
-                var users = ToyGetUsers();
-                foreach(var u in users)
-                {
-                    u.Delete();
-                }
-                c.Remove(thisSite);
-                c.SaveChanges();
-            }
-        }
-
-        public ISession? Login(string username, string password)
-        {
-            Exists();
-            UserValidator(username, password);
-            if (username.Length < DomainConstraints.MinUserName)
-                throw new AuctionSiteArgumentException("Login.CreateUser Error: username too short", nameof(username));
-            if (username.Length > DomainConstraints.MaxUserName)
-                throw new AuctionSiteArgumentException("Login.CreateUser Error: username too long", nameof(username));
-            if (password.Length < DomainConstraints.MinUserPassword)
-                throw new AuctionSiteArgumentException("Login.CreateUser Error: password too short ", nameof(password));
-
-            using (var c = new DbContext(_connectionString))
-            {
-                var myUser = c.Users!.Include(u => u.Session).SingleOrDefault(u => u.Username == username && u.SiteId == Id && u.Password == Hash.GenerateHash(password));
-                if (myUser == null) return null;
-                if (myUser.SessionId == null)
-                {
-                    var newSession = new Session(SiteId, myUser.UserId, 
-                        new User(SiteId, username, Hash.GenerateHash(password), _connectionString, _alarmClock), _alarmClock.Now.AddSeconds(SessionExpirationInSeconds), _connectionString, _alarmClock)
-                    { Id = myUser.UserId.ToString() };
-                    myUser.SessionId = newSession.Id;
-                    c.Sessions!.Add(newSession);
-                    c.SaveChanges();
-                    return newSession;
-                }
-                else
-                {
-                    var session = myUser.Session;
-                    session!.ValidUntil = _alarmClock.Now.AddSeconds(SessionExpirationInSeconds);
-                    c.Update(session);
-                    c.SaveChanges();
-                    var newSession = new Session(SiteId, myUser.UserId,
-                        new User(SiteId, username, Hash.GenerateHash(password), _connectionString, _alarmClock),
-                        session.DbValidUntil, _connectionString, _alarmClock)
-                    { Id = session.Id};
-                    return newSession;
-                }
-
-
-            }
-        }
-
-        public DateTime Now()
-        {
-            return _alarmClock.Now;
-        }
-
-        public IEnumerable<IAuction> ToyGetAuctions(bool onlyNotEnded)
-        {
-            
-            Exists();
-            var myAuctionsList = new List<IAuction>();
-            using(var c = new DbContext(_connectionString))
-            {
-                List<AuctionTable> auctions = c.Auctions.Where(a => a.SiteId == Id).Include(a => a.CreatedBy).ToList();
-                if (onlyNotEnded)
-                {
-                    foreach (var auction in auctions)
-                    {
-                        if (auction.EndsOn >= _alarmClock.Now)
-                            myAuctionsList.Add(new Auction(auction.AuctionId, auction.SellingUserId, auction.CreatedBy!, SiteId, auction.Description, auction.EndsOn, auction.CurPrice, auction.CurPrice, _connectionString, _alarmClock) { MaximumAmount = auction.MaximumAmount });
-                    }
-                }
-                else
-                {
-                    foreach (var auction in auctions)
-                    {
-                        myAuctionsList.Add(new Auction(auction.AuctionId, auction.SellingUserId, auction.CreatedBy!, SiteId, auction.Description, auction.EndsOn, auction.CurPrice, auction.CurPrice, _connectionString, _alarmClock) { MaximumAmount = auction.MaximumAmount });
-                    }
-                }
-            }
-        }
-
-        public IEnumerable<ISession> ToyGetSessions()
-        {
-            IEnumerable<ISession> ToyGetSessions_aux(List<SessionTable> sessions)
-            {
-                foreach(var session in sessions)
-                {
-                    yield return new Session(session,new User(session.Owner!, this,_connectionString), this, _connectionString);
-                }
-            }
-
-            Exists();
-            using(var c = new DbContext(_connectionString))
-            {
-                var sessions = c.Sessions.Where(s => s.SiteId == Id).Include(s => s.Owner).ToList();
-                return ToyGetSessions_aux(sessions);
-            }
-        }
-
-        public IEnumerable<IUser> ToyGetUsers() {
-            IEnumerable<IUser> ToyGetUsers_aux(List<UserTable> users)
-            {
-                foreach (var user in users)
-                {
-                    yield return new User(user,this,_connectionString);
-                }
-            }
-
-            Exists();
-            using (var c = new DbContext(_connectionString))
-            {
-                var users = c.Users.Where(s => s.SiteId == Id).ToList();
-                return ToyGetUsers_aux(users);
-            }
-        }
-
-        public void CleanSession()
-        {
-            using (var c = new DbContext(_connectionString))
-            {
-                var sessionsToClean =
-                    c.Sessions.Where(s => s.SiteId == Id && s.ValidUntil <= Now());
-
-                c.RemoveRange(sessionsToClean);
-                c.SaveChanges();
-            }
-            alarm = _alarmClock.InstantiateAlarm(300000);
-        }*/
     }
 }

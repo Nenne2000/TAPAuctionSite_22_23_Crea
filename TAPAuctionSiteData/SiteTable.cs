@@ -46,48 +46,4 @@ namespace Crea
             Sessions = new List<SessionTable>();
         }
     }
-    /*
-    [Key]
-        public int SiteId { get; set; }
-
-        [NotMapped]
-        private readonly IAlarmClock _alarmClock;
-
-        [NotMapped]
-        private readonly string _connectionString;
-
-        [Required]
-        [MinLength(DomainConstraints.MaxSiteName)]
-        [MaxLength(DomainConstraints.MaxSiteName)]
-        public string Name { get; set; }
-
-        [Required]
-        [Range(DomainConstraints.MinTimeZone, DomainConstraints.MaxTimeZone)]
-        public int Timezone { get; set; }
-
-        [Required]
-        [Range(1, int.MaxValue)]
-        public int SessionExpirationInSeconds { get; set; }
-
-        [Required]
-        [Range(double.Epsilon, double.PositiveInfinity)]
-        public double MinimumBidIncrement { get; set; }
-
-        public List<Auction> Auctions { get; set; } = new();
-        public List<Session> Sessions { get; set; } = new();
-
-
-
-
-        private Site() { }
-        public Site(string name, int timeZone, int sessionExpirationInSeconds, double minimumBidIncrement, IAlarmClock alarmClock, string connectionString)
-        {
-            Name = name;
-            Timezone = timeZone;
-            SessionExpirationInSeconds = sessionExpirationInSeconds;
-            MinimumBidIncrement = minimumBidIncrement;
-            _alarmClock = alarmClock;
-            _connectionString = connectionString;
-        }
-     */
 }

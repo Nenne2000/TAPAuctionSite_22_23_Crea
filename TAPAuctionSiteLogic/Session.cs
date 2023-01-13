@@ -1,8 +1,12 @@
-﻿using System;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TAP22_23.AlarmClock.Interface;
 using TAP22_23.AuctionSite.Interface;
 
 namespace Crea
@@ -37,15 +41,64 @@ namespace Crea
             _connectionString = connectionString;
             _site = site;
         }
+        private void Exists()
+        {
+            using (var c = new DbContext(_connectionString))
+            {
+                var thisSession = c.Sessions!.SingleOrDefault(s => s.SessionId == Id);
+                if (thisSession == null) throw new AuctionSiteInvalidOperationException("Session Error: This session has been deleted");
+            }
+        }
 
         public IAuction CreateAuction(string description, DateTime endsOn, double startingPrice)
         {
-            throw new NotImplementedException();
-        }
+            Exists();
 
+            if (_site.Now() > ValidUntil) throw new AuctionSiteInvalidOperationException("Session.CreateAuction Error: This session has expired");
+
+            if (description == null)
+                throw new AuctionSiteArgumentNullException("Session.CreateAuction Error: The description cannot be empty");
+            if (description == "") throw new AuctionSiteArgumentException("Session.CreateAuction Error: The description cannot be empty");
+            if (startingPrice < 0)
+                throw new AuctionSiteArgumentOutOfRangeException(nameof(startingPrice), startingPrice, "Session.CreateAuction Error: The starting price cannot be negative");
+            if (endsOn < _site.Now())
+                throw new AuctionSiteUnavailableTimeMachineException("Session.CreateAuction Error: endsOn cannot be less than the current time");
+
+            using (var c = new DbContext(_connectionString))
+            {
+                var user = c.Users!.SingleOrDefault(u => u.SiteId == _site.SiteId && u.Username == User.Username);
+                if (user == null) throw new AuctionSiteUnavailableDbException("Session.CreateAuction Error: User not found");
+                var newAuction = new AuctionTable(description,endsOn,startingPrice,((User)User).Id,_site.SiteId);
+                try
+                {
+                    c.Auctions.Add(newAuction);
+                    c.SaveChanges();
+                }
+                catch (SqlException e)
+                {
+                    throw new AuctionSiteUnavailableDbException("DB Error", e);
+                }
+
+                var thisSession = c.Sessions!.SingleOrDefault(s => s.SessionId == Id);
+                if (thisSession == null)
+                    throw new AuctionSiteInvalidOperationException("Session.CreateAuction Error: Session deleted");
+                thisSession.ValidUntil = _site.Now().AddSeconds(_site.SessionExpirationInSeconds);
+                //this.ValidUntil = site.Now().AddSeconds(site.SessionExpirationInSeconds);
+                c.SaveChanges();
+
+                return new Auction(newAuction.AuctionId,User,_site,description,endsOn,_connectionString);
+            }
+        }
         public void Logout()
         {
-            throw new NotImplementedException();
+            Exists();
+            using (var c = new DbContext(_connectionString))
+            {
+                var mySession = c.Sessions.FirstOrDefault(s => s.SessionId == Id);
+                if (mySession == null) throw new AuctionSiteInvalidOperationException("Session.Logout Error: Session deleted or not exist"); 
+                c.Sessions.Remove(mySession);
+                c.SaveChanges();
+            }
         }
     }
 }
