@@ -1,13 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TAP22_23.AlarmClock.Interface;
-using TAP22_23.AuctionSite.Interface;
-using static System.Collections.Specialized.BitVector32;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Crea
 {
@@ -53,14 +44,7 @@ namespace Crea
                 c.SaveChanges();
             }
         }
-        /*
-        public bool ValidateSession(Session session)
-        {
-            var sessions = _site.ToyGetSessions();
-            if (sessions.FirstOrDefault(s => s.Id == session.Id) == null) return false;
-            if()
-        
-        }*/
+
         public bool Bid(ISession session, double offer)
         {
             Exists();
@@ -175,6 +159,17 @@ namespace Crea
                     c.SaveChanges();
                 }
             }
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Auction auction &&
+                   Id == auction.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 }

@@ -1,12 +1,5 @@
-﻿using Crea;
-using Microsoft.Data.SqlClient;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Data.SqlClient;
 using TAP22_23.AlarmClock.Interface;
-using TAP22_23.AuctionSite.Interface;
 
 namespace Crea
 {

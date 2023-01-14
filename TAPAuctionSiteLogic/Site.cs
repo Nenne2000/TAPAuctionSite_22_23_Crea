@@ -1,14 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using TAP22_23.AlarmClock.Interface;
-using TAP22_23.AuctionSite.Interface;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Crea
 {
@@ -86,13 +77,13 @@ namespace Crea
                 {
                     if (session.Owner == null) throw new AuctionSiteArgumentNullException("Session owner cannot be null");
                     var user_aux = new User(session.Owner.UserId,session.Owner.Username,session.Owner.Password, _connectionString, this);
-                    yield return new Session(session.SessionId,session.ValidUntil, user_aux , _connectionString, this);
+                    yield return new Session(session.SessionId, user_aux , _connectionString, this);
                 }
             }
             Exists();
             using (var c = new DbContext(_connectionString))
             {
-                var sessions = c.Sessions.Where(s => s.SiteId == SiteId).Include(s => s.Owner).ToList();
+                var sessions = c.Sessions.Where(s => s.SiteId == SiteId && s.ValidUntil > Now()).Include(s => s.Owner).ToList();
                 return ToyGetSessions_aux(sessions);
             }
         }
@@ -135,21 +126,21 @@ namespace Crea
                 throw new AuctionSiteArgumentException("Login.CreateUser Error: password too short ", nameof(password));
             using (var c = new DbContext(_connectionString))
             {
-                var myUser = c.Users.FirstOrDefault(u => u.Username == username && u.SiteId == SiteId && u.Password == password);
+                var myUser = c.Users.FirstOrDefault(u => u.Username == username && u.SiteId == SiteId && u.Password == Hash.GenerateHash(password));
                 if (myUser == null) return null;
                 var mySession = c.Sessions.FirstOrDefault(s => s.UserId == myUser.UserId && s.ValidUntil > Now());
                 if (mySession != null) {
                     mySession.ValidUntil = _alarmClock.Now.AddSeconds(SessionExpirationInSeconds);
                     c.Update(mySession);
                     c.SaveChanges();
-                    return new Session(mySession.SessionId, mySession.ValidUntil, new User(myUser.UserId, myUser.Username, myUser.Password, _connectionString, this), _connectionString, this);
+                    return new Session(mySession.SessionId, new User(myUser.UserId, myUser.Username, myUser.Password, _connectionString, this), _connectionString, this);
                 } 
                 else
                 {
                     var newSessionEntity = new SessionTable($"session{Name}{username}{Now()}", Now().AddSeconds(SessionExpirationInSeconds), myUser.UserId, SiteId);
                     c.Sessions.Add(newSessionEntity);
                     c.SaveChanges();
-                    return new Session(newSessionEntity.SessionId, newSessionEntity.ValidUntil, new User(myUser.UserId, myUser.Username, myUser.Password, _connectionString, this), _connectionString, this);
+                    return new Session(newSessionEntity.SessionId, new User(myUser.UserId, myUser.Username, myUser.Password, _connectionString, this), _connectionString, this);
                 }
             }
         }
@@ -165,8 +156,9 @@ namespace Crea
                 throw new AuctionSiteArgumentException("user Error: password too short");
 
             var newUser = new UserTable(username, password, SiteId);
+            newUser.Password = Hash.GenerateHash(password);
 
-            using(var c = new DbContext(_connectionString))
+            using (var c = new DbContext(_connectionString))
             {
                 UserTable? alreadyExistingUser = c.Users.SingleOrDefault(u => u.Username == username);
                 if (alreadyExistingUser != null)

@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TAP22_23.AlarmClock.Interface;
-using TAP22_23.AuctionSite.Interface;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Crea
 {

@@ -1,13 +1,4 @@
 ﻿using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TAP22_23.AlarmClock.Interface;
-using TAP22_23.AuctionSite.Interface;
 
 namespace Crea
 {
@@ -22,7 +13,7 @@ namespace Crea
                 using (var c = new DbContext(_connectionString))
                 {
                     var thisSession = c.Sessions!.SingleOrDefault(s => s.SessionId == Id);
-                    if (thisSession == null) throw new AuctionSiteInvalidOperationException("Session Error: Session Deleted");
+                    if (thisSession == null) throw new AuctionSiteArgumentException("Session Error: Session Deleted");
                     return thisSession.ValidUntil;
                 }
             }
@@ -34,7 +25,7 @@ namespace Crea
         private readonly string _connectionString;
         private readonly Site _site;
 
-        public Session(string id, DateTime validUntil, IUser user, string connectionString, Site site)
+        public Session(string id, IUser user, string connectionString, Site site)
         {
             Id = id;
             User = user;
@@ -99,6 +90,17 @@ namespace Crea
                 c.Sessions.Remove(mySession);
                 c.SaveChanges();
             }
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Session session &&
+                   Id == session.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 }

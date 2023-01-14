@@ -1,14 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TAP22_23.AlarmClock.Interface;
-using TAP22_23.AuctionSite.Interface;
-
-namespace Crea
+﻿namespace Crea
 {
     public class User : IUser
     {
@@ -40,7 +30,7 @@ namespace Crea
         public void Delete()
         {
             Exists();
-            var OpenAuction = _site.ToyGetAuctions(true).FirstOrDefault(a => a.Seller.Username == Username || a.CurrentWinner().Username == Username);
+            var OpenAuction = _site.ToyGetAuctions(true).FirstOrDefault(a => a.Seller.Username == Username || a.CurrentWinner()!.Username == Username);
             if (OpenAuction != null) throw new AuctionSiteInvalidOperationException("User.Delete Error: you cannot delete user with open auction");
             using (var c = new DbContext(_connectionString))
             {
@@ -76,6 +66,17 @@ namespace Crea
                     yield return new Auction(a.AuctionId, new User(user.UserId,user.Username, user.Password,_connectionString,_site),_site, a.Description, a.EndsOn, _connectionString);
                 }
             }
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is User user &&
+                   Id == user.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
         }
     }
 }

@@ -25,12 +25,7 @@ namespace Crea
                 .WithOne(a => a.CurrentWinner!)
                 .HasForeignKey(a => a.CurrentWinnerId)
                 .OnDelete(DeleteBehavior.SetNull);
-            /*
-            user.HasOne(user => user.Session)
-                .WithOne(session => session.Owner)
-                .HasForeignKey<SessionTable>(session => session.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-            */
+
             user.HasMany(u => u.Sessions)
                 .WithOne(s => s.Owner!)
                 .HasForeignKey(s => s.UserId)
@@ -39,15 +34,6 @@ namespace Crea
             var session = modelBuilder.Entity<SessionTable>();
             session.HasOne(s => s.Site).WithMany(u => u!.Sessions).HasForeignKey(s => s.SiteId)
                 .OnDelete(DeleteBehavior.NoAction);
-
-            var auction = modelBuilder.Entity<AuctionTable>();
-            auction.HasOne(auction => auction.Site)
-                .WithMany(site => site!.Auctions)
-                .HasForeignKey(auction => auction.SiteId)
-                .OnDelete(DeleteBehavior.NoAction);
-
-
-            auction.Navigation(a => a.CreatedBy).AutoInclude();
         }
 
 

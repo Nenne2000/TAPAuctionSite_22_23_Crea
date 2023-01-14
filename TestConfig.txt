@@ -1,2 +1,2 @@
 C:\Users\samuc\source\repos\TAPAuctionSite_22_23_Crea\TAPAuctionSiteLogic\bin\Debug\net6.0\TAPAuctionSiteLogic.dll
-Data Source=.;Initial Catalog=Ziopera;Integrated Security=True;
+Data Source=.;Initial Catalog=CreaDatabaseTAP;Integrated Security=True;

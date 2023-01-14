@@ -1,15 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using TAP22_23.AlarmClock.Interface;
 using TAP22_23.AuctionSite.Interface;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Crea
 {
@@ -33,7 +24,6 @@ namespace Crea
         public List<AuctionTable> AuctionBidder { get; set; }
         public List<SessionTable> Sessions { get; set; }
         //--------------------------------------------------------//
-        //modified
         public UserTable(string username, string password, int siteId)
         {
             Username = username;
