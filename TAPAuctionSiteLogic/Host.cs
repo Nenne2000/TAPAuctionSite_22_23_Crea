@@ -82,14 +82,14 @@ namespace Crea
                 try
                 {
                     var site = c.Sites.FirstOrDefault(s => s.Name == name);
-                    if (site != null)
-                        return new Site(site.SiteId,site.Name,site.Timezone,site.SessionExpirationInSeconds,site.MinimumBidIncrement, ConnectionString, AlarmClockFactory.InstantiateAlarmClock(site.Timezone));
+                    if (site == null) throw new AuctionSiteInexistentNameException(name, "Host.LoadSite Error: inexistent site name");
+
+                    return new Site(site.SiteId, site.Name, site.Timezone, site.SessionExpirationInSeconds, site.MinimumBidIncrement, ConnectionString, AlarmClockFactory.InstantiateAlarmClock(site.Timezone));
                 }
-                catch(SqlException e)
+                catch (SqlException e)
                 {
-                    throw new AuctionSiteUnavailableDbException("Host.LoadSite Error: generic database error", e);
+                    throw new AuctionSiteUnavailableDbException("Host.GetSiteInfos Error: generic database error", e);
                 }
-                throw new AuctionSiteInexistentNameException(name,"Host.LoadSite Error: inexistent site name");
             }
         }
     }

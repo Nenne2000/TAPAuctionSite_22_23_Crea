@@ -36,14 +36,15 @@
             {
                 var user = c.Users.FirstOrDefault(u => u.UserId == Id);
                 if (user == null) throw new AuctionSiteInvalidOperationException("User.Delete Error: no user");
+
                 var auctions = _site.ToyGetAuctions(false).Where(s => s.Seller.Equals(this));
                 var sessions = _site.ToyGetSessions().Where(s => s.User.Username == Username).ToList();
 
-                foreach (var auc in auctions)
-                    auc.Delete();
+                foreach (var a in auctions)
+                    a.Delete();
 
-                foreach (var ses in sessions)
-                    ses.Logout();
+                foreach (var s in sessions)
+                    s.Logout();
 
                 c.Users.Remove(user);
 

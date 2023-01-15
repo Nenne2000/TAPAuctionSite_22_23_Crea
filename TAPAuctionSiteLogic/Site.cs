@@ -192,5 +192,16 @@ namespace Crea
             Exists();
             return _alarmClock.Now;
         }
+
+        public override bool Equals(object? obj)
+        {
+            return obj is Site site &&
+                   SiteId == site.SiteId;
+        }
+
+        public override int GetHashCode()
+        {
+            return SiteId.GetHashCode();
+        }
     }
 }

@@ -112,13 +112,8 @@ namespace Crea
                             myAuction.CurrentPrice = offer + _site.MinimumBidIncrement;
                     }
                 }
-
-
-
                 c.SaveChanges();
-
             }
-
             return true;
         }
 

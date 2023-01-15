@@ -14,24 +14,23 @@ namespace Crea
         [MinLength(DomainConstraints.MinUserName)]
         [MaxLength(DomainConstraints.MaxUserName)]
         public string Username { get; set; }
+
         [Required]
         [MinLength(DomainConstraints.MinUserPassword)]
         public string Password { get; set; }
+
         //--------------------------------------------------------//
         public SiteTable? SiteEntity { get; set; }
         public int SiteId { get; set; }
-        public List<AuctionTable> AuctionSeller { get; set; }
-        public List<AuctionTable> AuctionBidder { get; set; }
-        public List<SessionTable> Sessions { get; set; }
+        public List<AuctionTable> AuctionSeller { get; set; } = new();
+        public List<AuctionTable> AuctionBidder { get; set; } = new();
+        public List<SessionTable> Sessions { get; set; } = new();
         //--------------------------------------------------------//
         public UserTable(string username, string password, int siteId)
         {
             Username = username;
             Password = password;
             SiteId = siteId;
-            AuctionBidder = new List<AuctionTable>();
-            AuctionSeller = new List<AuctionTable>();
-            Sessions = new List<SessionTable>();
         }
     }
 }

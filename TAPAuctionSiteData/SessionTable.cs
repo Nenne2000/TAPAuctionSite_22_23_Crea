@@ -6,12 +6,12 @@ namespace Crea
     {
         [Key]
         public string SessionId { get; set; }
+
         public DateTime ValidUntil { get; set; }
 
         //-----------------------------------------//
         public UserTable? Owner { get; set; }
         public int UserId { get; set; }
-
         public SiteTable? Site { get; set; }
         public int SiteId { get; set; }
         //------------------------------------------//

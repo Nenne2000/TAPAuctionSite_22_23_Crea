@@ -74,7 +74,6 @@ namespace Crea
                 if (thisSession == null)
                     throw new AuctionSiteInvalidOperationException("Session.CreateAuction Error: Session deleted");
                 thisSession.ValidUntil = _site.Now().AddSeconds(_site.SessionExpirationInSeconds);
-                //this.ValidUntil = site.Now().AddSeconds(site.SessionExpirationInSeconds);
                 c.SaveChanges();
 
                 return new Auction(newAuction.AuctionId,User,_site,description,endsOn,_connectionString);
@@ -85,10 +84,17 @@ namespace Crea
             Exists();
             using (var c = new DbContext(_connectionString))
             {
-                var mySession = c.Sessions.FirstOrDefault(s => s.SessionId == Id);
-                if (mySession == null) throw new AuctionSiteInvalidOperationException("Session.Logout Error: Session deleted or not exist"); 
-                c.Sessions.Remove(mySession);
-                c.SaveChanges();
+                try
+                {
+                    var mySession = c.Sessions.FirstOrDefault(s => s.SessionId == Id);
+                    if (mySession == null) throw new AuctionSiteInvalidOperationException("Session.Logout Error: Session deleted or not exist");
+                    c.Sessions.Remove(mySession);
+                    c.SaveChanges();
+                }
+                catch (SqlException e)
+                {
+                    throw new AuctionSiteUnavailableDbException("DB Error", e);
+                }
             }
         }
 

@@ -24,9 +24,9 @@ namespace Crea
         [Range(0, double.MaxValue)]
         public double MinimumBidIncrement { get; set; }
         //------------------------------------------------------------------//
-        public List<UserTable> Users { get; set; }
-        public List<AuctionTable> Auctions { get; set; }
-        public List<SessionTable> Sessions { get; set; }
+        public List<UserTable> Users { get; set; } = new();
+        public List<AuctionTable> Auctions { get; set; } = new();
+        public List<SessionTable> Sessions { get; set; } = new();
         //------------------------------------------------------------------//
         public SiteTable(string name, int timezone, int sessionExpirationInSeconds, double minimumBidIncrement)
         {
@@ -34,10 +34,6 @@ namespace Crea
             Timezone = timezone;
             SessionExpirationInSeconds = sessionExpirationInSeconds;
             MinimumBidIncrement = minimumBidIncrement;
-
-            Users = new List<UserTable>();
-            Auctions = new List<AuctionTable>();
-            Sessions = new List<SessionTable>();
         }
     }
 }

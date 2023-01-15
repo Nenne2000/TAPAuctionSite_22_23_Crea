@@ -34,8 +34,8 @@ namespace Crea
             using (var c = new DbContext(connectionString))
             {
                 if (!c.Database.CanConnect()) throw new AuctionSiteUnavailableDbException("HostFactory.LoadHost Error: no database available");
-                return new Host(connectionString, alarmClockFactory);
             }
+            return new Host(connectionString, alarmClockFactory);
         }
     }
 }

@@ -9,10 +9,13 @@ namespace Crea
 
         [Required]
         public string Description { get; set; }
+
         [Required]
         public DateTime EndsOn { get; set; }
+
         [Required]
         public double MaximumBidValue { get; set; }
+
         [Required]
         public double CurrentPrice { get; set; }
 
