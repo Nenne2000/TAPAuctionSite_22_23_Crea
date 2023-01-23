@@ -57,25 +57,21 @@ namespace Crea
                 throw new AuctionSiteArgumentException("seller cannot make bids");
             if (offer < 0)
                 throw new AuctionSiteArgumentOutOfRangeException("Auction.bid Error: Offer cannot be negative");
-            if (session.ValidUntil < _site.Now()) throw new AuctionSiteArgumentException("a");
+            if (session.ValidUntil < _site.Now()) throw new AuctionSiteArgumentException("Auction.bid Error: Session expired");
 
             using (var c = new DbContext(_connectionString))
             {
-
                 var myUser = c.Users.FirstOrDefault(u => u.UserId == ((User)session.User).Id);
-
                 if (myUser == null)
                     throw new AuctionSiteInvalidOperationException("Auction.bid Error: user deleted");
 
                 var myAuction = c.Auctions.FirstOrDefault(a => a.AuctionId == Id);
-
                 if (myAuction == null)
                     throw new AuctionSiteInvalidOperationException("Auction deleted");
 
                 IncreaseTime(session);
-
-                if (offer < CurrentPrice())
-                    return false;
+                if (offer < 0) return false;
+                if (offer < CurrentPrice()) return false;
 
                 if (myAuction.CurrentWinnerId == myUser.UserId)
                 {
@@ -87,8 +83,6 @@ namespace Crea
                 {
                     myAuction.MaximumBidValue = offer;
                     myAuction.CurrentWinnerId = myUser.UserId;
-                    myAuction.CurrentWinner = new UserTable(myUser.Username,myUser.Password,myUser.UserId );
-
                 }
                 else
                 {
@@ -102,14 +96,13 @@ namespace Crea
                             myAuction.CurrentPrice = myAuction.MaximumBidValue + _site.MinimumBidIncrement;
                         myAuction.MaximumBidValue = offer;
                         myAuction.CurrentWinnerId = myUser.UserId;
-                        myAuction.CurrentWinner = new UserTable(myUser.Username,myUser.Password,myUser.UserId );
                     }
                     else
                     {
                         if (myAuction.MaximumBidValue < (offer + _site.MinimumBidIncrement))
                             myAuction.CurrentPrice = myAuction.MaximumBidValue;
                         else
-                            myAuction.CurrentPrice = offer + _site.MinimumBidIncrement;
+                            myAuction.CurrentPrice = Math.Min(myAuction.MaximumBidValue, offer + _site.MinimumBidIncrement);
                     }
                 }
                 c.SaveChanges();

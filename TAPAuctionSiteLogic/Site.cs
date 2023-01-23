@@ -41,7 +41,6 @@ namespace Crea
                 c.Sessions.RemoveRange(sessionsToClean);
                 c.SaveChanges();
             }
-            Alarm = _alarmClock.InstantiateAlarm(5 * 60 * 1000);
         }
         private void Exists()
         {
@@ -117,13 +116,13 @@ namespace Crea
             
             Exists();
             if (username == null || password == null)
-                throw new AuctionSiteArgumentNullException("user Error: Username or password cannot be null");
+                throw new AuctionSiteArgumentNullException("User.Login Error: Username or password cannot be null");
             if (username.Length < DomainConstraints.MinUserName)
-                throw new AuctionSiteArgumentException("Login.CreateUser Error: username too short", nameof(username));
+                throw new AuctionSiteArgumentException("User.Login Error: username too short", nameof(username));
             if (username.Length > DomainConstraints.MaxUserName)
-                throw new AuctionSiteArgumentException("Login.CreateUser Error: username too long", nameof(username));
+                throw new AuctionSiteArgumentException("User.Login Error: username too long", nameof(username));
             if (password.Length < DomainConstraints.MinUserPassword)
-                throw new AuctionSiteArgumentException("Login.CreateUser Error: password too short ", nameof(password));
+                throw new AuctionSiteArgumentException("User.Login Error: password too short ", nameof(password));
             using (var c = new DbContext(_connectionString))
             {
                 var myUser = c.Users.FirstOrDefault(u => u.Username == username && u.SiteId == SiteId && u.Password == Hash.GenerateHash(password));
@@ -149,18 +148,18 @@ namespace Crea
         {
             Exists();
             if (username == null || password == null)
-                throw new AuctionSiteArgumentNullException("user Error: Username or password cannot be null");
+                throw new AuctionSiteArgumentNullException("User.CreateUser Error: Username or password cannot be null");
             if (username.Length < DomainConstraints.MinUserName || username.Length > DomainConstraints.MaxUserName)
-                throw new AuctionSiteArgumentException("user Error: Username Lenght too short or too long");
+                throw new AuctionSiteArgumentException("User.CreateUser Error: Username Lenght too short or too long");
             if (password.Length < DomainConstraints.MinUserPassword)
-                throw new AuctionSiteArgumentException("user Error: password too short");
+                throw new AuctionSiteArgumentException("User.CreateUser Error: password too short");
 
             var newUser = new UserTable(username, password, SiteId);
             newUser.Password = Hash.GenerateHash(password);
 
             using (var c = new DbContext(_connectionString))
             {
-                UserTable? alreadyExistingUser = c.Users.SingleOrDefault(u => u.Username == username);
+                var alreadyExistingUser = c.Users.SingleOrDefault(u => u.Username == username);
                 if (alreadyExistingUser != null)
                     throw new AuctionSiteNameAlreadyInUseException("User.CreateUser Error: user already exists");
                 c.Users.Add(newUser);
@@ -173,14 +172,16 @@ namespace Crea
             //Exists();
             using (var c = new DbContext(_connectionString))
             {
+                var thisSite = c.Sites.FirstOrDefault(s => s.SiteId == SiteId);
+                if (thisSite == null) throw new AuctionSiteInvalidOperationException("Site Error: This site doesn't exists");
+
                 var sessions = ToyGetSessions();
                 foreach (var s in sessions)
                     s.Logout();
                 var users = ToyGetUsers();
                 foreach (var u in users)
                     u.Delete();
-                var thisSite = c.Sites.FirstOrDefault(s => s.SiteId == SiteId);
-                if (thisSite == null) throw new AuctionSiteInvalidOperationException("Site Error: This site doesn't exists");
+
                 c.Sites.Remove(thisSite);
 
                 c.SaveChanges();
@@ -196,7 +197,7 @@ namespace Crea
         public override bool Equals(object? obj)
         {
             return obj is Site site &&
-                   SiteId == site.SiteId;
+                   Name == site.Name;
         }
 
         public override int GetHashCode()

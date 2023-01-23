@@ -52,9 +52,9 @@ namespace Crea
 
         public IEnumerable<(string Name, int TimeZone)> GetSiteInfos()
         {
-            List<SiteTable> sites;
             using(var c = new DbContext(ConnectionString))
             {
+                List<SiteTable> sites;
                 try
                 {
                     sites = c.Sites.ToList();

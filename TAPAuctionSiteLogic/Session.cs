@@ -60,20 +60,15 @@ namespace Crea
                 var user = c.Users!.SingleOrDefault(u => u.SiteId == _site.SiteId && u.Username == User.Username);
                 if (user == null) throw new AuctionSiteUnavailableDbException("Session.CreateAuction Error: User not found");
                 var newAuction = new AuctionTable(description,endsOn,startingPrice,((User)User).Id,_site.SiteId);
-                try
-                {
-                    c.Auctions.Add(newAuction);
-                    c.SaveChanges();
-                }
-                catch (SqlException e)
-                {
-                    throw new AuctionSiteUnavailableDbException("DB Error", e);
-                }
+
+                c.Auctions.Add(newAuction);
 
                 var thisSession = c.Sessions!.SingleOrDefault(s => s.SessionId == Id);
                 if (thisSession == null)
                     throw new AuctionSiteInvalidOperationException("Session.CreateAuction Error: Session deleted");
+
                 thisSession.ValidUntil = _site.Now().AddSeconds(_site.SessionExpirationInSeconds);
+
                 c.SaveChanges();
 
                 return new Auction(newAuction.AuctionId,User,_site,description,endsOn,_connectionString);

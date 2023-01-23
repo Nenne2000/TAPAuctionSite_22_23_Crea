@@ -30,14 +30,17 @@
         public void Delete()
         {
             Exists();
-            var OpenAuction = _site.ToyGetAuctions(true).FirstOrDefault(a => a.Seller.Username == Username || a.CurrentWinner()!.Username == Username);
-            if (OpenAuction != null) throw new AuctionSiteInvalidOperationException("User.Delete Error: you cannot delete user with open auction");
+            
             using (var c = new DbContext(_connectionString))
             {
+                
                 var user = c.Users.FirstOrDefault(u => u.UserId == Id);
                 if (user == null) throw new AuctionSiteInvalidOperationException("User.Delete Error: no user");
 
-                var auctions = _site.ToyGetAuctions(false).Where(s => s.Seller.Equals(this));
+                var winningAuction = _site.ToyGetAuctions(true).FirstOrDefault(a => a.CurrentWinner()!.Equals(user));
+                if (winningAuction != null) throw new AuctionSiteInvalidOperationException("User.Delete Error: you cannot delete user with open auction");
+
+                var auctions = _site.ToyGetAuctions(false).Where(s => s.Seller.Username == Username);
                 var sessions = _site.ToyGetSessions().Where(s => s.User.Username == Username).ToList();
 
                 foreach (var a in auctions)
@@ -56,10 +59,9 @@
         {
             Exists();
 
-            var wonAuctionsList = new List<AuctionTable>();
             using (var c = new DbContext(_connectionString))
             {
-                wonAuctionsList = c.Auctions.Where(a => a.EndsOn < _site.Now() && a.CurrentWinnerId == Id).ToList();
+                var wonAuctionsList = c.Auctions.Where(a => a.EndsOn < _site.Now() && a.CurrentWinnerId == Id).ToList();
                 foreach (var a in wonAuctionsList)
                 {
                     var user = c.Users.FirstOrDefault(u => u.UserId == a.CurrentWinnerId);
